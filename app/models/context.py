@@ -1,3 +1,4 @@
+import tiktoken
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any
 from datetime import datetime
@@ -17,6 +18,14 @@ class AgentContext(BaseModel):
 
     def check_remaining_budget(self) -> int:
         return max(0, self.token_budget - self.tokens_used)
+
+    def count_tokens(self, text: str) -> int:
+        enc = tiktoken.get_encoding("cl100k_base")
+        return len(enc.encode(text))
+
+    def add_text_to_state(self, text: str):
+        self.current_state += "\n" + text
+        self.add_tokens(self.count_tokens(text))
 
     def add_tokens(self, count: int):
         self.tokens_used += count
